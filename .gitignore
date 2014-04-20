@@ -60,6 +60,8 @@ dlldata.c
 *.svclog
 *.scc
 
+# HTML files for doxygen
+html/
 
 # Chutzpah Test files
 _Chutzpah*
