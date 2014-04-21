@@ -1,55 +1,125 @@
-#include "FileRead.h"
+ï»¿/**********************************************************
+*
+*		FileRead
+*
+*								2014/4/21  ç…©æ‚©Cãƒˆ
+***********************************************************/
+#ifndef __FILEREAD_CPP__
+#define __FILEREAD_CPP__
+#include <fstream>
+#include "Common.h"
 #include "Novel.h"
+
+/**
+@file ãƒ•ã‚¡ã‚¤ãƒ«
+ãƒ•ã‚¡ã‚¤ãƒ«ã®èª­ã¿è¾¼ã¿
+ãƒ†ã‚­ã‚¹ãƒˆãƒ•ã‚¡ã‚¤ãƒ«ã‹ã‚‰ä¸€åˆ—äº‹ã«å–å¾—ã—ãŸãƒ‡ãƒ¼ã‚¿ã¨ãã®åˆ—ã®æ•°ã‚’æŒã£ã¦ã„ã‚‹
+*/
+namespace makeCto{
+
+	using namespace std;
+
+	template <class T>
+	class FileRead{
+	private:
+		PCTSTR SCENARIO;//File name
+		T str[STRNUM];//File data in
+		int ManyLine;//File data number
+	public:
+		FileRead();//Constructor
+		FileRead(PCTSTR);//Constructor with argument
+		~FileRead();//Destructor
+
+		void readFile();//read file
+		void readFileUTF_8();//read file
+
+		void setManyLine(int index);//set an argument to ManyLine 
+		int getManyLine();//get ManyLine
+
+		void setStr(T argumentStr, int index);//set strIndex the type string str
+
+		T getStr(int index);//type string return str[index]
+	};
+}
 
 namespace makeCto{
 	/**
-		ƒRƒ“ƒXƒgƒ‰ƒNƒ^ Constructor  2014/4/21 MakeCƒg
+		ã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ Constructor  2014/4/21 MakeCãƒˆ
 	*/
-	FileRead::FileRead() :SCENARIO("../Conversation/Scenario.txt"){
+	template<class T>
+	FileRead<T>::FileRead(){
+#if UNICODE
+		SCENARIO(_T("../Conversation/ScenarioUTF-8.txt"));
+#else if
+		SCENARIO(_T("../Conversation/Scenario.txt"));
+#endif
+		
 		ManyLine = 0;
 	}
 	/**
-		ˆø”•t‚«ƒRƒ“ƒXƒgƒ‰ƒNƒ^ Constructor with argument 2014/4/21 MakeCƒg
+		å¼•æ•°ä»˜ãã‚³ãƒ³ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ Constructor with argument 2014/4/21 MakeCãƒˆ
 		@param	scenario	[out] set the read text file in this argument
 	*/
-	FileRead::FileRead(const char* scenario) : SCENARIO(scenario){
+	template<class T>
+	FileRead<T>::FileRead(PCTSTR scenario) : SCENARIO(scenario){
 
 	}
 	/**
-		ƒfƒXƒgƒ‰ƒNƒ^ Destructor 2014/4/21 MakeCƒg
+		ãƒ‡ã‚¹ãƒˆãƒ©ã‚¯ã‚¿ Destructor 2014/4/21 MakeCãƒˆ
 	*/
-	FileRead::~FileRead(){
+	template<class T>
+	FileRead<T>::~FileRead(){
 
 	}
 	/**
-		ƒtƒ@ƒCƒ‹“Ç‚İ‚İ@File read 2014/4/21 MakeCƒg
+		ãƒ•ã‚¡ã‚¤ãƒ«èª­ã¿è¾¼ã¿ã€€File read 2014/4/21 MakeCãƒˆ
 	*/
-	void FileRead::readFile(){
+	template<class T>
+	void FileRead<T>::readFile(){
 
-		ifstream fin(SCENARIO);
-		//temporary data
-		char temp[STRNUM] = "";
+#if UNICODE
+		basic_string<wchar_t> str;
+		FILE *fp = _tfopen(SCENARIO, _T("r,ccs=UTF-8"));
+		if (fp == NULL){
+			throw "readFile:not open";
+		}
+		wifstream ifs(fp);
+
 		int strIndex = 0;
-		
+
+		while (getline(ifs,str)){
+			setStr(str, strIndex);
+			strIndex++;
+		}
+		fclose(fp);
+#else if
+		TCHAR temp[STRNUM] = "";
+		ifstream fin(SCENARIO);
+		if(!fin){
+			throw "readFile:not open";
+		}
+		int strIndex = 0;
+
 		while (!fin.eof()){
 			fin.getline(temp, STRNUM);
 			//setStr(temp, strIndex);
 			str[strIndex] = temp;
 			strIndex++;
 		}
-		
+#endif
 		setManyLine(strIndex); 
 	}
-
-	void FileRead::readFile(int){
-		//FILE *fp = _tfopen(SCENARIO, _T("r,ccs=UTF-8"));
-	}
+	//template<class T>
+	//void FileRead<T>::readFileUTF_8(){
+	//	
+	//}
 	/**
-		ManyLine‚Ì’l‚ğ•Ô‚· 2014/4/21 MakeCƒg
+		ManyLineã®å€¤ã‚’è¿”ã™ 2014/4/21 MakeCãƒˆ
 		@attention	please use it after setting the str,this function
 		@return		return ManyLine
 	*/
-	void FileRead::setManyLine(int index){
+	template<class T>
+	void FileRead<T>::setManyLine(int index){
 		//check overrun
 		if (0 > index || index >= STRNUM){
 			throw "setManyLine:access overrun.";
@@ -57,20 +127,22 @@ namespace makeCto{
 		ManyLine = index;
 	}
 	/**
-		ManyLine‚Ì’l‚ğ•Ô‚· 2014/4/21 MakeCƒg
+		ManyLineã®å€¤ã‚’è¿”ã™ 2014/4/21 MakeCãƒˆ
 		@attention	please use it after setting the str,this function
 		@return		return ManyLine
 	*/
-	int FileRead::getManyLine(){
+	template<class T>
+	int FileRead<T>::getManyLine(){
 		return ManyLine;
 	}
 	/**
-		str‚Ìindex‚ÉargumentStrİ’è 2014/4/21 MakeCƒg
+		strã®indexã«argumentStrè¨­å®š 2014/4/21 MakeCãƒˆ
 		@param[out] argumentStr	set the position of the index of str
 		@param[out] index		set index
 		@attention	please use it after setting the str,this function
 	*/
-	void FileRead::setStr(string argumentStr, int index){
+	template<class T>
+	void FileRead<T>::setStr(T argumentStr, int index){
 		//check overrun
 		if (0 > index || index >= STRNUM){
 			throw "setStr:access overrun.";
@@ -78,12 +150,13 @@ namespace makeCto{
 		str[index] = argumentStr;
 	}
 	/**
-		str‚Éindex‚ğİ’è‚µ‚Ä‚»‚ê‚ğ•Ô‚· 2014/4/21 MakeCƒg
+		strã«indexã‚’è¨­å®šã—ã¦ãã‚Œã‚’è¿”ã™ 2014/4/21 MakeCãƒˆ
 		@param[out] index	set str index
 		@attention	please use it after setting the str,this function
 		@return		type string return
 	*/
-	string FileRead::getStr(int index){
+	template<class T>
+	T FileRead<T>::getStr(int index){
 		//check overrun
 		if (0 > index || index >= STRNUM){
 			throw "getStr:access overrun.";
@@ -91,3 +164,5 @@ namespace makeCto{
 		return str[index];
 	}
 }
+
+#endif __FILEREAD_H__//çœç•¥å¯èƒ½
